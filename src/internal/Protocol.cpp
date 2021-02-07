@@ -11,6 +11,7 @@ namespace DcsBios {
 		processingData = false;
 		state = DCSBIOS_STATE_WAIT_FOR_SYNC;
 		sync_byte_count = 0;
+		sys_byte_count = 0;
 	}
 
 	/*
@@ -75,8 +76,6 @@ namespace DcsBios {
 			data = (c << 8) | data;
 			count--;
 			
-
-
 			//ExportStreamListener::handleDcsBiosWrite(address, data);
 			// skip all ESLs that cannot possibly be interested in the current address
 			while(startESL && startESL->getLastAddressOfInterest() < address) {
@@ -103,13 +102,36 @@ namespace DcsBios {
 			else
 				state = DCSBIOS_STATE_DATA_LOW;
 			break;
-	  }
+		/*case DCSBIOS_STATE_EXPECT_CMD:
+			cmd = c;
+			break;
+		case DCSBIOS_STATE_EXPECT_CMD_VALUE_LOW:
+		    cmdValue = (unsigned int)c;
+			break;
+	   case DCSBIOS_STATE_EXPECT_CMD_VALUE_HIGH:
+	   		cmdValue = (c << 8) | count;
+			state = DCSBIOS_STATE_WAIT_FOR_SYNC;
+	   		break;	*/
+	}
+	
+	  /*if(c == 0x33)
+	  	sys_byte_count++;
+	  else
+	  {
+		state = DCSBIOS_STATE_EXPECT_CMD;
+	    sys_byte_count = 0;
+	  }*/
 
 	  if (c == 0x55)
 		sync_byte_count++;
 	  else
 		sync_byte_count = 0;
 	  
+	 if(sys_byte_count == 4) {
+		 sys_byte_count = 0;
+
+	 }
+
 	  if (sync_byte_count == 4) {
 		state = DCSBIOS_STATE_ADDRESS_LOW;
 		sync_byte_count = 0;

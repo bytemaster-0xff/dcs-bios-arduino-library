@@ -102,6 +102,7 @@ do not come with their own build system, we are just putting everything into the
 
 
 #include "internal/Buttons.h"
+#include "internal/Stepper.h"
 #include "internal/Switches.h"
 #include "internal/Encoders.h"
 #include "internal/Potentiometers.h"

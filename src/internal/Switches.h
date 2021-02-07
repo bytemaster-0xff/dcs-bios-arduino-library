@@ -33,8 +33,41 @@ namespace DcsBios {
 			Switch2Pos(const char* msg, char pin) { init_(msg, pin, false); }
 	};
 
-	
-	
+	class FuelShutoff : PollingInput {
+		private:
+			const char* msg_;
+			char pinA_;
+			char pinB_;
+			char lastState_;
+			char readState() {
+				if (digitalRead(pinA_) == LOW) return 0;
+				if (digitalRead(pinB_) == LOW) return 2;
+				return 1;
+			}
+			void pollInput() {
+				char state = readState();
+				if (state != lastState_) {
+					if (state == 0)
+						if (tryToSendDcsBiosMessage(msg_, "0"))
+							lastState_ = state;
+					if (state == 1)
+						if (tryToSendDcsBiosMessage(msg_, "1"))
+							lastState_ = state;
+					if (state == 2)
+						if(tryToSendDcsBiosMessage(msg_, "2"))
+							lastState_ = state;
+				}
+			}
+		public:
+			FuelShutoff(const char* msg, char pinA, char pinB) {
+				msg_ = msg;
+				pinA_ = pinA;
+				pinB_ = pinB;
+				pinMode(pinA_, INPUT_PULLUP);
+				pinMode(pinB_, INPUT_PULLUP);
+				lastState_ = readState();
+			}
+	};	
 	
 	class Switch3Pos : PollingInput {
 		private:
@@ -71,8 +104,50 @@ namespace DcsBios {
 				lastState_ = readState();
 			}
 	};
-
 	
+	class Switch4Pos : PollingInput {
+		private:
+			const char* msg_;
+			char pinA_;
+			char pinB_;
+			char pinC_;
+			char lastState_;
+			char readState() {
+				if (digitalRead(pinA_) == LOW) return 0;
+				if (digitalRead(pinB_) == LOW) return 2;
+				if (digitalRead(pinC_) == LOW) return 3;
+				return 1;
+			}
+			void pollInput() {
+				char state = readState();
+				if (state != lastState_) {
+					if (state == 0)
+						if (tryToSendDcsBiosMessage(msg_, "0"))
+							lastState_ = state;
+					if (state == 1)
+						if (tryToSendDcsBiosMessage(msg_, "1"))
+							lastState_ = state;
+					if (state == 2)
+						if(tryToSendDcsBiosMessage(msg_, "2"))
+							lastState_ = state;
+					if (state == 3)
+						if(tryToSendDcsBiosMessage(msg_, "3"))
+							lastState_ = state;
+				}
+			}
+		public:
+			Switch4Pos(const char* msg, char pinA, char pinB, char pinC) {
+				msg_ = msg;
+				pinA_ = pinA;
+				pinC_ = pinC;
+				pinMode(pinA_, INPUT_PULLUP);
+				pinMode(pinB_, INPUT_PULLUP);
+				pinMode(pinC_, INPUT_PULLUP);
+				lastState_ = readState();
+			}
+	};
+	
+
 	class SwitchMultiPos : PollingInput {
 		private:
 			const char* msg_;
@@ -82,7 +157,8 @@ namespace DcsBios {
 			char readState() {
 				unsigned char i;
 				for (i=0; i<numberOfPins_; i++) {
-					if (digitalRead(pins_[i]) == LOW) return i;
+					if(pins_[i] != 255)
+						if (digitalRead(pins_[i]) == LOW) return i;
 				}
 				return lastState_;
 			}
@@ -102,12 +178,12 @@ namespace DcsBios {
 				numberOfPins_ = numberOfPins;
 				unsigned char i;
 				for (i=0; i<numberOfPins; i++) {
-					pinMode(pins[i], INPUT_PULLUP);
+					if(pins_[i] != 255)
+						pinMode(pins[i], INPUT_PULLUP);
 				}
 				lastState_ = readState();
 			}
 	};
-
 }
 
 #endif	
